@@ -1,45 +1,56 @@
-require "fileutils"
-require "bundler/gem_tasks"
+require 'fileutils'
+require 'bundler/gem_tasks'
 
-desc "Syncronize Swagger UI"
+desc 'Syncronize Swagger UI'
 task :sync_swagger_ui do
 
-  source      = File.join File.dirname(__FILE__), "swagger-ui-src", "dist"
-  destination = File.join File.dirname(__FILE__), "app", "assets"
+  swagger_root = 'swagger'
 
-  js_destination = File.join destination, "javascripts", "swagger-ui"
+  source = File.join File.dirname(__FILE__), 'swagger-ui-src', 'dist'
+  assets = File.join File.dirname(__FILE__), 'app', 'assets'
 
-  idx = File.join js_destination, "index.js"
+  images_folder = File.join(assets, 'images', swagger_root)
+  javascripts_folder = File.join(assets, 'javascripts', swagger_root)
+  stylesheets_folder = File.join(assets, 'stylesheets', swagger_root)
+  Dir.mkdir(images_folder) unless File.exist?(images_folder)
+  Dir.mkdir(javascripts_folder) unless File.exist?(javascripts_folder)
+  Dir.mkdir(stylesheets_folder) unless File.exist?(stylesheets_folder)
 
-  File.read(idx).each_line do | line |
+  index = File.join File.dirname(__FILE__), 'lib', 'swagger-ui_rails', 'index.js'
+
+  File.read(index).each_line do |line|
     if line =~ /require (.*)/
+      directory = File.dirname("#{$1.strip}")
+      directory.slice! './'
+      Dir.mkdir(File.join javascripts_folder, directory) unless File.exist?(File.join javascripts_folder, directory)
       file = "#{source}/#{$1.strip}"
-      # hack to make throbber.gif available on asset pipeline
-      if $1.strip =~ /swagger-ui\.js/
-        contents = File.read file
-        File.open "#{file.gsub(source, js_destination)}.erb", "w" do | f |
-          f << contents.gsub("src='images/throbber.gif'", "src='<%= asset_path(\"throbber.gif\") %>'")
-        end
-      else
-        FileUtils.cp_r file, file.gsub(source, js_destination), verbose: true
-      end
+      FileUtils.cp_r file, file.gsub(source, javascripts_folder), verbose: true
     end
   end
+  FileUtils.cp_r index, javascripts_folder, verbose: true
 
-  oauth_source = File.join source, "lib", "swagger-oauth.js"
-  oauth_dest   = js_destination.gsub "swagger-ui-src", "swagger-oauth.js"
+  index = File.join File.dirname(__FILE__), 'lib', 'swagger-ui_rails', 'index.css'
 
-  FileUtils.cp_r oauth_source, oauth_dest, verbose: true
+  File.read(index).each_line do |line|
+      if line =~ /require (.*)/
+        directory = File.dirname("#{$1.strip}")
+        directory.slice! './'
+        Dir.mkdir(File.join stylesheets_folder, directory) unless File.exist?(File.join stylesheets_folder, directory)
+        file = "#{source}/#{$1.strip}"
+        FileUtils.cp_r file, file.gsub(source, stylesheets_folder), verbose: true
+      end
+  end
+  FileUtils.cp_r index, stylesheets_folder, verbose: true
 
-  css_destination = File.join destination, "stylesheets", "swagger-ui"
-  css_source      = File.join source, "css"
+  index = File.join File.dirname(__FILE__), 'lib', 'swagger-ui_rails', 'index.img'
 
-  idx = File.join css_destination, "index.css"
-
-  File.read(idx).each_line do | line |
-    if line =~ /require (.*)\.css/
-      file = "#{css_source}/#{$1.strip}.css"
-      FileUtils.cp_r file, file.gsub(css_source, css_destination), verbose: true
+  File.read(index).each_line do |line|
+    if line =~ /require (.*)/
+      directory = File.dirname("#{$1.strip}")
+      directory.slice! './'
+      Dir.mkdir(File.join images_folder, directory) unless File.exist?(File.join images_folder, directory)
+      file = "#{source}/#{$1.strip}"
+      FileUtils.cp_r file, file.gsub(source, images_folder), verbose: true
     end
   end
 
