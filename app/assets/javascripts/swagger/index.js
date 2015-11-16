@@ -14,9 +14,6 @@
 
 //= require ./lang/translator.js
 //= require ./lang/en.js
-//= require ./lang/ru.js
-//= require ./lang/pt.js
-//= require ./lang/es.js
 
 //= require ./swagger-ui.min.js
 //= require ./swagger-ui.js
