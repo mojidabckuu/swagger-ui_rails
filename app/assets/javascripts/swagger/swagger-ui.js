@@ -4093,7 +4093,7 @@ Operation.prototype.urlify = function (args) {
       }
     }
   }
-  var url = this.scheme + '://' + this.host;
+  var url = this.host;
 
   if (this.basePath !== '/') {
     url += this.basePath;
